@@ -1,0 +1,44 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Všechny rezervace{% endblock %}
+
+{% block body %}
+    <div class="panel panel-info col-sm-12">
+        <div class="panel-heading">
+            <h3>Všechny nadcházející rezervace</h3>
+        </div>
+        {% if bookings is not empty %}
+            <table class="table table-striped table-light table-hover">
+                <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th class="text-center">SPZ</th>
+                    <th><span class="fas fa-sticky-note"></span> Vozidlo</th>
+                    <th><span class="fas fa-id-card"></span> Autor</th>
+                    <th><span class="fas fa-calendar-plus"></span> Přidáno</th>
+                    <th><span class="fas fa-calendar-alt"></span> Rezervace od-do</th>
+                    <th><span class="fas fa-comment-alt"></span> Popis</th>
+                    <th class="text-center">Akce</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {% for booking in bookings %}
+                    <tr>
+                        <td class="text-center">{{ booking.id }}</td>
+                        <td class="text-center">{{ booking.car.spz | upper }}</td>
+                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.car.note }}</td>
+                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.user.displayname }}</td>
+                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.reservationadded | date("d.m.Y H:i:s") }}</td>
+                        <td style="white-space:pre-wrap; word-wrap:break-word"><span style="font-weight: bold">{{ booking.reservationDateFrom | date("H:i:s") }} </span> {{ booking.reservationDateFrom | date("d.m.Y") }} {# musí se přetypovat na string z date #}
+                            <br/><span style="font-weight: bold">{{ booking.reservationDateTo | date("H:i:s") }} </span> {{ booking.reservationDateTo | date("d.m.Y") }}</td>
+                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.note }}</td>
+                        <td class="text-center"><a href="{{ path('deleteBooking', {'id':  booking.id  }) }}" class="btn btn-sm btn-danger"><span class="fas fa-trash"></span> Smazat</a></td> {# zde v "href" přidáme "path" #}
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}

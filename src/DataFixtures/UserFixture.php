@@ -9,8 +9,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class UserFixture extends Fixture
 {
-    public const USER_USER_REFERENCE = 'user-user';
     public const USER_ADMIN_REFERENCE = 'user-admin';
+    public const USER_USER_REFERENCE = 'user-user';
 
     private $encoder;
 
@@ -18,7 +18,6 @@ class UserFixture extends Fixture
     {
         $this->encoder = $encoder;
     }
-
     public function load(ObjectManager $manager)
     {
         $user1 = new User();
