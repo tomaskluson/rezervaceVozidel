@@ -39,13 +39,13 @@ class Reservation
 
     /**
      * @ORM\ManyToOne(targetEntity=Car::class, inversedBy="reservations")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(name="car_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $car;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="reservations")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      */
     private $user;
 

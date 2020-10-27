@@ -1,0 +1,75 @@
+{% extends "base.html.twig" %}
+{% block title %}Seznam vozidel{% endblock %}
+{% block body %}
+
+    <div class="panel panel-info col-sm-12">
+        <div class="panel-heading">
+            <h3>Seznam vozidel</h3>
+        </div>
+        <table class="table table-striped table-light table-hover">
+            <thead>
+            <tr>
+                <th class="text-center">#</th>
+                <th class="text-center">SPZ</th>
+                <th>Popis vozidla</th>
+                <th class="text-center">Aktivováno</th>
+                <th class="text-center">Akce</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for car in cars %}
+                <tr>
+                    <td class="text-center">{{ car.id }}</td>
+                    <td class="text-center">{{ car.spz | upper }}</td>
+                    <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ car.note }}</td>
+                    <td class="text-center">
+                        {% if car.isDeactivated %}
+                            Ne
+                        {% else %}
+                            Ano
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ path('changeCar', {'id':  car.id  }) }}" class="btn btn-sm btn-warning">Změnit</a>
+                        <a class="btn btn-sm btn-danger" data-url="{{ path('deleteCar', { 'id': car.id }) }}" data-toggle="modal" data-spz="{{ car.spz | upper }}" data-note="{{ car.note }}" data-target="#deleteCarModal">Odstranit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            <!-- Modal pro smazání vozidla -->
+            <div class="modal fade" id="deleteCarModal" tabindex="-1" role="dialog" aria-labelledby="deleteCarModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteCarModalLongTitle">Odstranit vozidlo?</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Odstranit vozidlo
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Ne</button>
+                            <a href="#" type="button" id="link" class="btn btn-danger">Ano</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                $('#deleteCarModal').on('show.bs.modal', function (event) {
+                    let button = $(event.relatedTarget);
+                    let spz = button.data('spz');
+                    let note = button.data('note');
+                    let url = button.data('url');
+                    let modal = $(this);
+                    modal.find('.modal-title').text('Odstranit vozidlo?');
+                    modal.find('.modal-body').text('Vážně chcete odstranit vozidlo '+note+" (SPZ: "+spz+")");
+                    modal.find('#link').attr("href", url);
+                });
+            </script>
+            </tbody>
+        </table>
+    </div>
+
+
+{% endblock %}

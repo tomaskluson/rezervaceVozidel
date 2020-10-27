@@ -1,0 +1,45 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Správa uživatelů{% endblock %}
+{% block body %}
+    <div class="panel panel-info col-sm-12">
+        <div class="panel-heading">
+            <h3>Správa uživatelů</h3>
+        </div>
+        <table class="table table-striped table-light table-hover">
+            <thead>
+            <tr>
+                <th class="text-center">#</th>
+                <th class="text-center">Email</th>
+                <th class="text-center">Jméno</th>
+                <th class="text-center">Může rezervovat</th>
+                <th class="text-center">Administrátor</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td class="text-center">{{ user.id }}</td>
+                    <td class="text-center">{{ user.email }}</td>
+                    <td class="text-center">{{ user.displayname }}</td>
+                    <td class="text-center">
+                        {% if user.canReserve %}
+                            Ano
+                        {% else %}
+                            Ne
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if "ROLE_ADMIN" in user.roles %} {# zda je "ROLE_ADMIN" v rolích uživatele #}
+                            Ano
+                        {% else %}
+                            Ne
+                        {% endif %}
+                    </td>
+                    <td class="text-center"><a href="{{ path('changeUser', {'id':  user.id  }) }}" class="btn btn-sm btn-warning">Změnit</a>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html.twig" %}
+{% block title %}Vytvořit rezervaci{% endblock %}
+{% block body %}
+    <div class="panel panel-success col-sm-8">
+        <div class="panel-heading">
+            <h3>Rezervovat vozidlo</h3>
+        </div>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+        {{ form(form) }}
+        <script>
+            $('#reservation_form_reservation_date_to, #reservation_form_reservation_date_from').daterangepicker({
+                "singleDatePicker": true,
+                "timePicker": true,
+                "timePicker24Hour": true,
+                "autoApply": true,
+                "locale": {
+                    "format": "DD.MM.YYYY HH:mm",
+                    "separator": " - ",
+                    "applyLabel": "OK",
+                    "cancelLabel": "Zrušit",
+                    "fromLabel": "Od",
+                    "toLabel": "Do",
+                    "customRangeLabel": "Custom",
+                    "weekLabel": "W",
+                    "daysOfWeek": ["Ne","Po","Út","St","Čt","Pá","So"],
+                    "monthNames": ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"],
+                    "firstDay": 1
+                },
+                "minDate": new Date(), //nevezme si starší datum
+                "startDate": new Date(), // automaticky zadá začátek rezervace
+                "endDate": new Date(), //      -||-    konec rezervace
+                "opens": "right"
+            });
+        </script>
+    </div>
+{% endblock %}

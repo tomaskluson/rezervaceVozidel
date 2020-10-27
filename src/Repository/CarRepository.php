@@ -9,7 +9,6 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @method Car|null find($id, $lockMode = null, $lockVersion = null)
  * @method Car|null findOneBy(array $criteria, array $orderBy = null)
- * @method Car[]    findAll()
  * @method Car[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class CarRepository extends ServiceEntityRepository
@@ -17,6 +16,11 @@ class CarRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Car::class);
+    }
+
+    public function findAll()
+    {
+        return $this->createQueryBuilder('c'); // alias nutný pro paginator, budeme mít parametry jako např. c.spz (řazení podle SPZ)
     }
 
     // /**

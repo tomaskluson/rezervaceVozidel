@@ -1,3 +1,10 @@
 #index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+#  path: /
+#  controller: App\Controller\UserController::IndexAction
+
+homepage:
+  path: /
+  controller: Symfony\Bundle\FrameworkBundle\Controller\RedirectController::urlRedirectAction
+  defaults:
+    path: /myBooking
+    permanent: true
