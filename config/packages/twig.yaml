@@ -1,2 +1,5 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
+
+    globals:
+        vehicles_directory: '%app.path.vehicles_images%'

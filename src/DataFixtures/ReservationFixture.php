@@ -13,30 +13,39 @@ class ReservationFixture extends Fixture implements DependentFixtureInterface
     public function load(ObjectManager $manager)
     {
         // zde získáme objekty z předešlých fixtures
-        $car = $this->getReference(CarFixture::CAR_CAR1_REFERENCE);
+        $car = $this->getReference(CarFixture::CAR_CAR1);
+        $car2 = $this->getReference(CarFixture::CAR_CAR2);
         $user1 = $this->getReference(UserFixture::USER_USER_REFERENCE);
         $user2 = $this->getReference(UserFixture::USER_ADMIN_REFERENCE);
 
         $date = new DateTime();
         $enddate = new DateTime();
-        $enddate->modify("+5 hours"); // rezervace bude trvat 5h
 
-        $res = new Reservation();
-        $res->setCar($car);
-        $res->setUser($user1);
-        $res->setNote("První rezervace");
-        $res->setReservationDateFrom($date);
-        $res->setReservationDateTo($enddate);
+        for ($i=1; $i<20; $i++)
+        {
+            $enddate->modify("+5 hours"); // konec rezervace bude o 5h později
 
-        $res2 = new Reservation();
-        $res2->setCar($car);
-        $res2->setUser($user2);
-        $res2->setNote("Druhá rezervace");
-        $res2->setReservationDateFrom($date);
-        $res2->setReservationDateTo($enddate);
+            $date2 = clone $date;
+            $enddate2 = clone $enddate;
 
-        $manager->persist($res);
-        $manager->persist($res2);
+            $res = new Reservation();
+            if ($i%2)
+            {
+                $res->setCar($car);
+                $res->setUser($user1);
+            } else {
+                $res->setCar($car2);
+                $res->setUser($user2);
+            }
+
+            $res->setNote("Rezervace $i");
+            $res->setReservationDateFrom($date2);
+            $res->setReservationDateTo($enddate2);
+
+            $date->modify("+5 hours"); // začátek další rezervace bude o 5h později
+
+            $manager->persist($res);
+        }
 
         $manager->flush();
     }

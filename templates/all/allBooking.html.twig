@@ -5,40 +5,71 @@
 {% block body %}
     <div class="panel panel-info col-sm-12">
         <div class="panel-heading">
-            <h3>Všechny nadcházející rezervace</h3>
+            <h3 class="col-12">Všechny rezervace</h3>
         </div>
-        {% if bookings is not empty %}
-            <table class="table table-striped table-light table-hover">
-                <thead>
-                <tr>
-                    <th class="text-center">#</th>
-                    <th class="text-center">SPZ</th>
-                    <th><span class="fas fa-sticky-note"></span> Vozidlo</th>
-                    <th><span class="fas fa-id-card"></span> Autor</th>
-                    <th><span class="fas fa-calendar-plus"></span> Přidáno</th>
-                    <th><span class="fas fa-calendar-alt"></span> Rezervace od-do</th>
-                    <th><span class="fas fa-comment-alt"></span> Popis</th>
-                    <th class="text-center">Akce</th>
-                </tr>
-                </thead>
-                <tbody>
-
-                {% for booking in bookings %}
+        <div class="nav-filter mb-2 col-12">
+            <span>Zobrazit</span>
+            <a class="{% if not app.request.get('search') == 'all' %}active{% endif %}" href="{{ path('allBookings') }}">NOVÉ</a> |
+            <a class="{% if app.request.get('search') == 'all' %}active{% endif %}" href="{{ path('allBookings', { 'search': 'all' }) }}">VŠECHNY</a>
+            <span>rezervace</span>
+        </div>
+        {% if pagination is not empty %}
+            <div class="count">
+                Počet rezervací: <span class="font-weight-bold">{{ pagination.getTotalItemCount }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-light table-hover">
+                    <thead>
                     <tr>
-                        <td class="text-center">{{ booking.id }}</td>
-                        <td class="text-center">{{ booking.car.spz | upper }}</td>
-                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.car.note }}</td>
-                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.user.displayname }}</td>
-                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.reservationadded | date("d.m.Y H:i:s") }}</td>
-                        <td style="white-space:pre-wrap; word-wrap:break-word"><span style="font-weight: bold">{{ booking.reservationDateFrom | date("H:i:s") }} </span> {{ booking.reservationDateFrom | date("d.m.Y") }} {# musí se přetypovat na string z date #}
-                            <br/><span style="font-weight: bold">{{ booking.reservationDateTo | date("H:i:s") }} </span> {{ booking.reservationDateTo | date("d.m.Y") }}</td>
-                        <td style="white-space:pre-wrap; word-wrap:break-word; max-width: 15%">{{ booking.note }}</td>
-                        <td class="text-center"><a href="{{ path('deleteBooking', {'id':  booking.id  }) }}" class="btn btn-sm btn-danger"><span class="fas fa-trash"></span> Smazat</a></td> {# zde v "href" přidáme "path" #}
+                        <th class="text-center">#</th>
+                        <th class="text-center {% if pagination.isSorted('c.spz') %}sorted{% endif %}">
+                            {{ knp_pagination_sortable(pagination, 'SPZ', 'c.spz') }}
+                        </th>
+                        <th class="text-primary text-nowrap {% if pagination.isSorted('c.note') %}sorted{% endif %}">
+                            <span class="fas fa-sticky-note"></span>
+                            <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Vozidlo', 'c.note') }}</span>
+                        </th>
+                        <th class="text-primary text-nowrap {% if pagination.isSorted('u.displayname') %}sorted{% endif %}">
+                            <span class="fas fa-id-card"></span>
+                            <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Autor', 'u.displayname') }}</span>
+                        </th>
+                        <th class="text-primary text-nowrap {% if pagination.isSorted('b.reservation_added') %}sorted{% endif %}">
+                            <span class="fas fa-calendar-plus"></span>
+                            <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Přidáno', 'b.reservation_added') }}</span>
+                        </th>
+                        <th class="text-primary text-nowrap {% if pagination.isSorted('b.reservation_date_from') %}sorted{% endif %}">
+                            <span class="fas fa-calendar-alt"></span>
+                            <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Rezervace od-do', 'b.reservation_date_from') }}</span>
+                        </th>
+                        <th class="text-primary text-nowrap {% if pagination.isSorted('b.note') %}sorted{% endif %}">
+                            <span class="fas fa-comment-alt"></span>
+                            <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Popis', 'b.note') }}</span>
+                        </th>
+                        <th class="text-center ">Akce</th>
                     </tr>
-                {% endfor %}
-
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {% for booking in pagination %}
+                        <tr>
+                            <td class="text-center align-middle">{{ pagination.getPaginationData.firstItemNumber + loop.index - 1 }}</td>
+                            <td class="text-center align-middle">{{ booking.car.spz | upper }}</td>
+                            <td><img class="rounded align-middle" width="50" src="{{ vehicles_directory }}/{{ booking.car.imageName }}"></td>
+                            <td class="text-wrap align-middle" style="white-space:pre-wrap; max-width: 15%">{{ booking.car.note }}</td>
+                            <td class="text-wrap align-middle" style="white-space:pre-wrap; max-width: 15%">{{ booking.user.displayname }}</td>
+                            <td class="text-wrap align-middle" style="white-space:pre-wrap; max-width: 15%">{{ booking.reservationadded | date("d.m.Y H:i:s") }}</td>
+                            <td class="text-wrap align-middle" style="white-space:pre-wrap;">
+                                <span class="font-weight-bold">{{ booking.reservationDateFrom | date("H:i:s") }} </span> {{ booking.reservationDateFrom | date("d.m.Y") }} {# musí se přetypovat na string z date #}
+                                <br/><span class="font-weight-bold">{{ booking.reservationDateTo | date("H:i:s") }} </span> {{ booking.reservationDateTo | date("d.m.Y") }}</td>
+                            <td class="text-wrap align-middle" style="white-space:pre-wrap;">{{ booking.note }}</td>
+                            <td class="text-center text-nowrap"><a href="{{ path('deleteBooking', {'id':  booking.id  }) }}" class="btn btn-sm btn-danger"><span class="fas fa-trash"></span> Smazat</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="navigation d-flex justify-content-center">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            </div>
         {% endif %}
     </div>
 {% endblock %}

@@ -1,0 +1,38 @@
+{% set formErrors = form.vars.errors.form.getErrors(true) %}
+
+{{ form_start(form) }}
+
+{# výpis errorů: #}
+{% if formErrors|length %}
+    <div class="errors">
+        {% for error in formErrors %}
+            <div class="alert alert-danger">{{ error.message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{{ form_label(form.spz) }}
+{{ form_widget(form.spz) }}
+{{ form_help(form.spz) }}
+
+{{ form_label(form.note) }}
+{{ form_widget(form.note) }}
+{{ form_help(form.note) }}
+
+{{ form_label(form.isDeactivated) }}
+{{ form_widget(form.isDeactivated) }}
+{{ form_help(form.isDeactivated) }}
+
+{{ form_label(form.imageFile) }}
+{{ form_widget(form.imageFile) }}
+{{ form_help(form.imageFile) }}
+
+{{ form_label(form.colorText) }}
+{{ form_widget(form.colorText) }}
+{{ form_help(form.colorText) }}
+
+{{ form_label(form.colorBackground) }}
+{{ form_widget(form.colorBackground) }}
+{{ form_help(form.colorBackground) }}
+
+{{ form_end(form) }}

@@ -6,9 +6,13 @@ use App\Repository\CarRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Entity\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 /**
  * @ORM\Entity(repositoryClass=CarRepository::class)
+ * @Vich\Uploadable()
  */
 class Car
 {
@@ -39,6 +43,40 @@ class Car
      * @ORM\OneToMany(targetEntity=Reservation::class, mappedBy="car")
      */
     private $reservations;
+
+    /**
+     * @ORM\Column(type="string", length=25)
+     */
+    private $colorText;
+
+    /**
+     * @ORM\Column(type="string", length=25)
+     */
+    private $colorBackground;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $uploadedAt;
+
+    /**
+     *
+     * @Vich\UploadableField(mapping="vehicle_image", fileNameProperty="imageName", size="imageSize")
+     * @var File|null
+     */
+    private $imageFile;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string|null
+     */
+    private $imageName;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     * @var int|null
+     */
+    private $imageSize;
 
     public function __construct()
     {
@@ -84,6 +122,78 @@ class Car
         $this->isDeactivated = $isDeactivated;
 
         return $this;
+    }
+
+    public function getColorText(): ?string
+    {
+        return $this->colorText;
+    }
+
+    public function setColorText(?string $colorText): self
+    {
+        $this->colorText = $colorText;
+
+        return $this;
+    }
+
+    public function getColorBackground(): ?string
+    {
+        return $this->colorBackground;
+    }
+
+    public function setColorBackground(?string $colorBackground): self
+    {
+        $this->colorBackground = $colorBackground;
+
+        return $this;
+    }
+
+    public function getUploadedAt(): ?\DateTimeInterface
+    {
+        return $this->uploadedAt;
+    }
+
+    public function setUploadedAt(\DateTimeInterface $uploadedAt): self
+    {
+        $this->uploadedAt = $uploadedAt;
+
+        return $this;
+    }
+
+    public function setImageFile(File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+            $this->uploadedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageName(?string $imageName): void
+    {
+        $this->imageName = $imageName;
+    }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
+    }
+
+    public function setImageSize(?int $imageSize): void
+    {
+        $this->imageSize = $imageSize;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
     }
 
     /**

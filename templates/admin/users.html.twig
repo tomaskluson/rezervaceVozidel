@@ -4,42 +4,66 @@
 {% block body %}
     <div class="panel panel-info col-sm-12">
         <div class="panel-heading">
-            <h3>Správa uživatelů</h3>
+            <h3 class="col-sm-6 col-xs-12">Správa uživatelů</h3>
         </div>
-        <table class="table table-striped table-light table-hover">
-            <thead>
-            <tr>
-                <th class="text-center">#</th>
-                <th class="text-center">Email</th>
-                <th class="text-center">Jméno</th>
-                <th class="text-center">Může rezervovat</th>
-                <th class="text-center">Administrátor</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for user in users %}
+        <div class="count float-left">
+            Počet uživatelů: <span class="font-weight-bold">{{ pagination.getTotalItemCount }}</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-light table-hover">
+                <thead>
                 <tr>
-                    <td class="text-center">{{ user.id }}</td>
-                    <td class="text-center">{{ user.email }}</td>
-                    <td class="text-center">{{ user.displayname }}</td>
-                    <td class="text-center">
-                        {% if user.canReserve %}
-                            Ano
-                        {% else %}
-                            Ne
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        {% if "ROLE_ADMIN" in user.roles %} {# zda je "ROLE_ADMIN" v rolích uživatele #}
-                            Ano
-                        {% else %}
-                            Ne
-                        {% endif %}
-                    </td>
-                    <td class="text-center"><a href="{{ path('changeUser', {'id':  user.id  }) }}" class="btn btn-sm btn-warning">Změnit</a>
+                    {# sorting of properties based on query components #}
+                    <th class="text-center text-nowrap {% if pagination.isSorted('u.id') %}sorted{% endif %}">
+                        <span class="pr-3">{{ knp_pagination_sortable(pagination, 'ID', 'u.id') }}</span>
+                    </th>
+                    <th class="text-center text-nowrap text-primary {% if pagination.isSorted('u.email') %}sorted{% endif %}">
+                        <span class="fas fa-at"></span>
+                        <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Email', 'u.email') }}</span>
+                    </th>
+                    <th class="text-center text-nowrap text-primary {% if pagination.isSorted('u.displayname') %}sorted{% endif %}">
+                        <span class="fas fa-signature"></span>
+                        <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Jméno', 'u.displayname') }}</span>
+                    </th>
+                    <th class="text-center text-nowrap text-primary {% if pagination.isSorted('u.canReserve') %}sorted{% endif %}">
+                        <span class="fas fa-user-edit"></span>
+                        <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Může rezervovat', 'u.canReserve') }}</span>
+                    </th>
+                    <th class="text-center text-nowrap text-primary {% if pagination.isSorted('u.roles') %}sorted{% endif %}">
+                        <span class="fas fa-user-secret"></span>
+                        <span class="pr-3">{{ knp_pagination_sortable(pagination, 'Administrátor', 'u.roles') }}</span>
+                    </th>
+                    <th class="text-center">Akce</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for user in pagination %}
+                    <tr>
+                        <td class="text-center">{{ user.id }}</td>
+                        <td class="text-center">{{ user.email }}</td>
+                        <td class="text-center">{{ user.displayname }}</td>
+                        <td class="text-center">
+                            {% if user.canReserve %}
+                                Ano
+                            {% else %}
+                                Ne
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if "ROLE_ADMIN" in user.roles %} {# zda je "ROLE_ADMIN" v rolích uživatele #}
+                                Ano
+                            {% else %}
+                                Ne
+                            {% endif %}
+                        </td>
+                        <td class="text-center text-nowrap"><a href="{{ path('changeUser', {'id':  user.id  }) }}" class="btn btn-sm btn-warning">Změnit</a>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="navigation d-flex justify-content-center">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        </div>
     </div>
 {% endblock %}

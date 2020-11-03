@@ -1,0 +1,38 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.calendar-car-link:hover {
+    filter: drop-shadow(0px 0px 4px black);
+    z-index: 1000;
+}
+
+.event-link:hover {
+    cursor: pointer;
+    box-shadow: 0 0 5px #1bd3f5;
+}
+.event-link {
+    transition: all 0.5s;
+}
+
+.nav-filter .active {
+    color: red;
+    font-weight: bold;
+}
+
+.table-responsive .table thead tr th:not(.sorted) {
+    font-weight: normal;
+}
+
+.table-responsive .table thead tr th.sorted {
+    font-weight: bold;
+}
+
+.help-text {
+    color: gray;
+    font-style: italic;
+}
+
+.roles label {
+    padding: 0 0.5rem;
+}

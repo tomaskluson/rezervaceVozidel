@@ -8,7 +8,10 @@ use App\Entity\User;
 use App\Form\CarFormType;
 use App\Form\ChangeUserFormType;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,23 +20,32 @@ class AdminController extends AbstractController
 {
     /**
      * @Route("cars", name="cars")
+     * @param Request $request
+     * @param PaginatorInterface $paginator
+     * @param EntityManagerInterface $em
+     * @return Response
      */
-    public function carsAction()
+    public function listCarsAction(Request $request, PaginatorInterface $paginator, EntityManagerInterface $em)
     {
         // blokovat anonymy
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        $em = $this->getDoctrine()->getManager();
+        $query = $em->getRepository("App:Car")->findAll();
 
-        $cars = $em->getRepository("App:Car")->findAll();
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            10
+        );
 
         return $this->render('admin/index.html.twig', array(
-            'cars' => $cars->getQuery()->execute()
+            'pagination' => $pagination
         ));
     }
 
     /**
      * @Route("addCar", name="addCar")
+     * @param Request $request
      */
     public function addCarAction(Request $request)
     {
@@ -54,6 +66,18 @@ class AdminController extends AbstractController
         try {
             // pokud je validní po odeslání
             if ($form->isSubmitted() && $form->isValid()) {
+                $file = $form['imageFile']->getData();
+
+                $uploading = empty($file) ? false : true;
+
+                // Pokud se nenahrává, nastavíme defaultní obrázek, jinak nastavíme nahraný soubor
+                if (!$uploading)
+                {
+                    $car->setImageName($this->getParameter('default_image'));
+                } else {
+                    $car->setImageFile($file);
+                }
+
                 $em = $this->getDoctrine()->getManager();
                 // vložit záznam do DB
                 $em->persist($car);
@@ -80,6 +104,8 @@ class AdminController extends AbstractController
 
     /**
      * @Route("/changeCar/{id}", name="changeCar")
+     * @param Request $request
+     * @param $id
      */
     public function changeCarAction(Request $request, $id)
     {
@@ -107,6 +133,22 @@ class AdminController extends AbstractController
 
         try {
             if ($form->isSubmitted() && $form->isValid()) {
+                $file = $form['imageFile']->getData();
+
+                $uploading = empty($file) ? false : true;
+
+                // pokud nenahráváme a nemáme natavený obrázek, natavíme defaultní.
+                //jinak pokud nahráváme a náš obrázek není defaultní, smažeme původní a nastavíme nový
+                if (!$uploading && empty($car->getImageName()))
+                {
+                    $car->setImageName($this->getParameter('default_image'));
+                } else if ($uploading) {
+                    if ($car->getImageName() != $this->getParameter('default_image')) {
+                        $filesystem = new Filesystem();
+                        $filesystem->remove($this->getParameter('vehicles_directory') . '/' . $car->getImageName());
+                    }
+                    $car->setImageFile($file);
+                }
 
                 // uložit do DB
                 $em->persist($car);
@@ -128,11 +170,13 @@ class AdminController extends AbstractController
 
         return $this->render('admin/changeCar.html.twig', array(
             'form' => $form->createView(),
+            'image' => $car->getImageName()
         ));
     }
 
     /**
      * @Route("/deleteCar/{id}", name="deleteCar")
+     * @param $id
      */
     public function deleteCarAction(Request $request, $id)
     {
@@ -160,14 +204,6 @@ class AdminController extends AbstractController
                     )
                 );
 
-            if ($car === null) {
-                $this->addFlash(
-                    'danger',
-                    'Vozidlo neexistuje.'
-                );
-                return $this->redirectToRoute("cars");
-            }
-
             /* @var $bookings Reservation */
             // nalezne všechny rezervace spojené s tímto vozidlem
             $bookings = $em
@@ -176,17 +212,18 @@ class AdminController extends AbstractController
                     'car' => $car,
                 ));
 
-            //var_dump($car); // krásně vypíše obsah proměnné, doporučuji vyzkoušet, ať vidíte, jak vypadá objekt
-
-            // pouze pro výpis
-            $count = sizeof($bookings);
+            // odstranění obrázku
+            if ($car->getImageName() != $this->getParameter('default_image')) {
+                $filesystem = new Filesystem();
+                $filesystem->remove($this->getParameter('vehicles_directory') . '/' . $car->getImageName());
+            }
 
             $em->remove($car);
             $em->flush();
 
             $this->addFlash(
                 'success',
-                'Vozidlo '.$car->getNote().' úspěšně odstraněno. Počet rezervací odstraněno: '.$count
+                'Vozidlo '.$car->getNote().' úspěšně odstraněno. Počet rezervací odstraněno: '.sizeof($bookings)
             );
 
         }catch (DBALException $e){
@@ -201,8 +238,12 @@ class AdminController extends AbstractController
 
     /**
      * @Route("users", name="users")
+     * @param PaginatorInterface $paginator
+     * @param Request $request
+     * @param EntityManagerInterface $em
+     * @return Response
      */
-    public function usersAction()
+    public function usersAction(PaginatorInterface $paginator, Request $request, EntityManagerInterface $em)
     {
         // blokovat anonymy
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
@@ -212,12 +253,17 @@ class AdminController extends AbstractController
             return new Response('Nemáte právo měnit uživatele.');
         }
 
-        $users = $this->getDoctrine()
-            ->getRepository("App:User") // přistupovat ke třídě můžeme i takto
-            ->findAll();    // funkce z repositáře, která nám vybere všechny uživatele
+        //$users = $this->getDoctrine()->getRepository("App:User")->findAll();
+        $users = $em->getRepository('App:User')->findAll();
+
+        $pagination = $paginator->paginate(
+            $users->getQuery()->execute(),
+            $request->query->getInt('page', 1),
+            10
+        );
 
         return $this->render('admin/users.html.twig', array(
-            'users' => $users // všechny uživatele pošleme do naší šablony
+            'pagination' => $pagination,
         ));
     }
 

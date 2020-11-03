@@ -1,0 +1,32 @@
+<div class="table-responsive">
+    <table class="table table-striped table-light text-dark table-hover table-bordered">
+        <tbody>
+        <tr>
+            <th>Vozidlo</th>
+            <td>[{{ res.car.spz|upper }}] <b>{{ res.car.note }}</b>
+                <img alt="car image" style="max-width: 17%;max-height: 5em;" src="{{ vehicles_directory }}/{{ res.car.imageName }}"><br>
+            </td>
+        </tr>
+        <tr>
+            <th>Rezervoval</th>
+            <td><b>{{ res.user.displayname }}</b> <i> v {{ res.reservationAdded | date('H:i d.m.Y') }}</i></td>
+        </tr>
+        <tr>
+            <th>Rezervováno</th>
+            <td>od <b>{{ res.reservationDateFrom|date('H:i d.m.Y') }}<br></b> do <b>{{ res.reservationDateTo|date('H:i d.m.Y') }}</b></td>
+        </tr>
+        <tr>
+            <th>Poznámka</th>
+            <td>{{ res.note }}</td>
+        </tr>
+        <tr>
+            <th>Akce</th>
+            <td>
+                <a href="{{ path('deleteBooking', {'id':  res.id  }) }}" class="btn btn-sm btn-danger">
+                    <span class="fas fa-trash-alt"></span> Odstranit
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

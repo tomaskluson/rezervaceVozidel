@@ -5,8 +5,11 @@ namespace App\Controller;
 use App\Entity\Reservation;
 use App\Form\ReservationFormType;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
@@ -15,13 +18,15 @@ class UserController extends AbstractController
 {
     /**
      * @Route("/myBooking", name="myBooking")
+     * @param Request $request
+     * @param PaginatorInterface $paginator
+     * @param EntityManagerInterface $em
+     * @return Response
      */
-    public function indexAction(Request $request)
+    public function indexAction(Request $request, PaginatorInterface $paginator, EntityManagerInterface $em)
     {
         // blokovat anonymy (uživatel se musí přihlásit)
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
-        $em = $this->getDoctrine()->getManager();
 
         $user = $this->getUser();
 
@@ -42,11 +47,14 @@ class UserController extends AbstractController
                 $query = $em->getRepository("App:Reservation")->findNewBookingsBy($user);
         }
 
+        $pagination = $paginator->paginate(
+            $query->getQuery(),
+            $request->query->getInt('page', 1),
+            10
+        );
 
-        $bookings = $query->getQuery()->execute();
-
-        // zobrazit hlášku, že neexistují žádné rezervace
-        if (empty($bookings)){
+        //zobrazit hlášku že neexistují žádné rezervace
+        if (!$pagination->count()){
             $this->addFlash(
                 'warning',
                 'Zde nemáte žádné rezervace.'
@@ -54,23 +62,23 @@ class UserController extends AbstractController
         }
 
         return $this->render('all/index.html.twig', array(
-            'bookings' => $bookings,
+            'pagination' => $pagination,
         ));
     }
 
     /**
      * @Route("/allBookings", name="allBookings")
+     * @param Request $request
+     * @param PaginatorInterface $paginator
+     * @return Response
      */
-    public function allBookingsAction(Request $request)
+    public function allBookingsAction(Request $request, PaginatorInterface $paginator)
     {
         // blokovat anonymní uživatele
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         $search = $request->get("search");
-        $monthsBack = $request->get("monthsBack");
-
-        if (!$monthsBack)
-            $monthsBack = 12;
+        $monthsBack = $request->get("monthsBack", 12);
 
         $em = $this->getDoctrine()->getManager();
 
@@ -85,18 +93,22 @@ class UserController extends AbstractController
                 $query = $em->getRepository("App:Reservation")->findAllNewBookings(intval($monthsBack));
         }
 
-        $bookings = $query->getQuery()->execute();
+        $pagination = $paginator->paginate(
+            $query->getQuery(),
+            $request->query->getInt('page', 1),
+            10
+        );
 
-        // zobrazit hlášku, že neexistují žádné rezervace
-        if (empty($bookings)){
+        //zobrazit hlášku že neexistují žádné rezervace
+        if (!$pagination->count()){
             $this->addFlash(
                 'warning',
-                'Neexistují žádné nadcházející rezervace.'
+                'Zde neexistují žádné rezervace.'
             );
         }
 
         return $this->render('all/allBooking.html.twig', array(
-            'bookings' => $bookings, // zde posíláme proměnnou do kontroleru, můžeme poslat i objekt (PS: toto je array objektů, k jednotlivým vlastnostem přistupujeme v twigu přes tečku)
+            'pagination' => $pagination,
         ));
 
     }

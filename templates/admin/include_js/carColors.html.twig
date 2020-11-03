@@ -1,0 +1,12 @@
+<script>
+    $(document).ready(function() {
+        let color = $("#car_form_colorText");
+        let background = $("#car_form_colorBackground");
+        changeColorPreview(color.val(), background.val());
+        color.change(function() { changeColorPreview(color.val(), background.val()) });
+        background.change(function() { changeColorPreview(color.val(), background.val()) });
+    });
+    function changeColorPreview(color, background) {
+        $("#colorPreview").css({"color": color, "background-color": background});
+    }
+</script>

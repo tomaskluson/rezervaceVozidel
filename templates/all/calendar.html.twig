@@ -1,0 +1,170 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Kalendář rezervací{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/main.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/daygrid/main.min.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/bootstrap/main.min.css" />
+{% endblock %}
+
+{% block container %}
+    <div class="col text-dark bg-light mb-3 mt-2 pt-5 pb-4">
+        <div class="row">
+            <div class="col">
+                {# flashbags - chybové hlášky, success, danger, warnings..; zkrácený zápis #}
+                <div class="alerts d-print-none">
+                    {% for type, flash_messages in app.session.flashBag.all %}
+                        {% for msg in flash_messages %}
+                            <div class="alert alert-{{ type }}">
+                                {{ msg }}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+
+                {% block body %}
+                    <div class="col-xs-12 col-sm-12 col-xl-2 float-left mb-2">
+                        <div class="card">
+                            <div class="card-header">
+                                Vozidla
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                {% for car in cars %}
+                                    <a class="text-decoration-none calendar-car-link" href="{{ path('changeCar', {'id':  car.id  }) }}">
+                                        <li class="list-group-item" style="color: {{ car.colorText }}; background-color: {{ car.colorBackground }}">{{ car.note }}</li>
+                                    </a>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel panel-info col-xs-12 col-sm-12 col-xl-9 float-left">
+                        <div id='calendar'></div>
+                    </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="ModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalLongTitle">Detail rezervace</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-body-content" class="font-weight-bold"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Zavřít</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/main.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/locales-all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/daygrid/main.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/timegrid/main.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/bootstrap/main.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/interaction/main.min.js"></script>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            let calendarEl = document.getElementById('calendar');
+
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                plugins: [ 'dayGrid', 'timeGrid', 'bootstrap' ],
+                themeSystem: 'bootstrap',
+                locale: 'cs',
+                eventLimit: true,
+                contentHeight: 720,
+                header: {
+                    left:   'OnlyMyBookings',
+                    center: 'title',
+                    right:  'today prev,next'
+                },
+                customButtons: {
+                    OnlyMyBookings: {
+                        text: onlyMineReservations() ? 'Zobrazit všechny rezervace' : 'Zobrazit pouze mé rezervace',
+                        click: function () {
+
+                            let url_ostatni = '{{ path('calendar', { 'monthsBack': 6 } ) }}';
+                            let url_vlastni = '{{ path('calendar', { 'myReservations': 'true', 'monthsBack': 6 } ) }}';
+                            url_vlastni = url_vlastni.replace('amp;', '');
+                            url_ostatni = url_ostatni.replace('amp;', '');
+                            if (onlyMineReservations())
+                                window.location.href = url_ostatni;
+                            else
+                                window.location.href = url_vlastni;
+                        },
+                    }
+                },
+                // funkce - klik na rezervaci, v inicializaci kalendáře
+                eventClick: function(eventObj) {
+                    showBooking(eventObj.event.id);
+                },
+
+                events: [
+                    {% for booking in bookings %}
+                    {
+                        title  : '{{ booking.user.displayname }}, {{ booking.note }}',
+                        start  : '{{ booking.reservationDateFrom | date("Y-m-d H:i") }}',
+                        end    : '{{ booking.reservationDateTo | date("Y-m-d H:i") }}',
+                        allDay : false, // ukaže začátek rezervace (čas)
+                        textColor: '{{ booking.car.colorText }}',
+                        color: '{{ booking.car.colorBackground }}',
+                        id: '{{ booking.id  }}',
+                        kind: 'rezervace' ,
+                        classNames: 'event-link'
+                    },
+                    {% endfor %}
+                ],
+            });
+
+            calendar.render();
+        });
+
+        onlyMineReservations = function() {
+            return (window.location.href.indexOf('?myReservations=true') > 0)
+        }
+
+    </script>
+
+    <script>
+        /* SHOW BOOKING SCRIPT */
+        function showBooking(id) {
+            let booking_url = '{{ path('viewBooking', { 'id': 'booking_id' }) }}';
+
+            // proměnná z JS do TWIG, zde pouze získáme URL z TWIGU pomocí JS. Do TWIG funkce normálně nemůžeme vkládat proměnné
+            booking_url = booking_url.replace("booking_id", id);
+            let modal = $('#modal-body-content');
+
+            $.ajax({
+                dataType: "html",
+                url: booking_url,
+                type: "GET",
+                success: function(data)
+                {
+                    modal.html(data);
+                    $('#Modal').modal('show');
+                },
+                error: function(){
+                    modal.html("Rezervaci se nepodařilo načíst.");
+                    $('#Modal').modal('show');
+                }
+            });
+        }
+    </script>
+{% endblock %}

@@ -5,7 +5,7 @@ framework:
 
         # The "app" cache stores to the filesystem by default.
         # The data in this cache should persist between deploys.
-        # Other options include:
+        # Other options include_form:
 
         # Redis
         #app: cache.adapter.redis

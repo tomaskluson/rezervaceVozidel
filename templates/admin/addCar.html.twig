@@ -7,9 +7,14 @@
         <div class="panel-heading">
             <h3>Přidat vozidlo</h3>
         </div>
-        {{ form_start(form) }}
-        {{ form_widget(form) }}
-        {{ form_end(form) }}
-
+        {% include "admin/include_form/carForm.html.twig" %}
+        <div class="mt-3">
+            <span class="p-1 font-weight-bold rounded" id="colorPreview">Barva vozidla</span>
+        </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% include "admin/include_js/carColors.html.twig" %}
 {% endblock %}
